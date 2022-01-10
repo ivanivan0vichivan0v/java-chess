@@ -1,4 +1,2 @@
 # java-chess
-Java, in Chess.
-
-By: Ian
+Chess, in Java, made by Ian.
