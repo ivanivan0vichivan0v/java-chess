@@ -171,7 +171,7 @@ class ChessGame {
 			}
 		}
 	}
-	
+
 	// modify a game piece
 	public void modifyPiece(Square originalPos, Square newPos) {
 		for (int i = 0; i < 16; i++) {
@@ -194,8 +194,7 @@ class ChessGame {
 		Square originalPos = new Square(piece.getPieceX(), piece.getPieceY());
 		modifyPiece(originalPos, move);
 	}
-}
-	
+
 	public ArrayList<Square> getPieceOffset(Piece piece) {
 		ArrayList<Square> offsetList = new ArrayList<Square>();
 		int pieceX = piece.getPieceX();
@@ -286,8 +285,7 @@ class ChessGame {
 		}
 		return moveList;
 	}
-
-	
+}
 
 public class Chess extends ApplicationAdapter {
 	private Texture chessboard;
