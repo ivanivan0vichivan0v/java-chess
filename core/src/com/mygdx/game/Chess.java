@@ -299,15 +299,17 @@ public class Chess extends ApplicationAdapter {
 	private Piece whitePieces[] = new Piece[16];
 	private Piece blackPieces[] = new Piece[16];
 	private Piece selectedPiece;
-
+	private Piece temporaryPiece;
+	
 	private OrthographicCamera camera;
 	private SpriteBatch batch;
 
 	private Square projectedSquare = new Square(-100, -100);
 	private Square selectedSquare;
-	private Square selectedMove;
+	private Square selectedMove = null;
+	private Square tempSquare;
 
-	ArrayList<Square> moveList;
+	private ArrayList<Square> moveList;
 
 	@Override
 	public void create() {
@@ -350,16 +352,34 @@ public class Chess extends ApplicationAdapter {
 			camera.unproject(touchPos);
 			int a = (int) (touchPos.x - (touchPos.x % 60));
 			int b = (int) (touchPos.y - (touchPos.y % 60));
-			Square temp = new Square(a / 60, b / 60);
-			System.out.println(selectedPiece);
-			if (chessGame.pieceLookUp(temp.getX(), temp.getY()) != null
-					&& selectedPiece.getPieceColour() == chessGame.getCurrentTurn()) {
+			tempSquare = new Square(a / 60, b / 60);
+			temporaryPiece = chessGame.pieceLookUp(tempSquare.getX(), tempSquare.getY());
+			if (temporaryPiece != null
+					&& temporaryPiece.getPieceColour() == chessGame.getCurrentTurn()) {
+				selectedPiece = temporaryPiece;
 				moveList = chessGame.generateMoveList(selectedPiece);
 				projectedSquare = new Square(a, b);
-				selectedSquare = temp;
-				selectedPiece = chessGame.pieceLookUp(temp.getX(), temp.getY());
-			} else {
-				selectedMove = temp;
+				selectedMove = null;
+			}
+			else {
+				selectedMove = tempSquare;
+			}
+			if (selectedPiece != null && selectedMove != null) {
+				for (int i = 0; i < moveList.size(); i++) {
+					try {
+						if (moveList.get(i).getX() == selectedMove.getX() && moveList.get(i).getY() == selectedMove.getY()) {
+							System.out.println(selectedPiece);
+							System.out.println(selectedMove);
+							chessGame.movePiece(selectedPiece, selectedMove);
+							selectedMove = null;
+							chessGame.nextTurn();
+						}
+					}
+					catch (Exception e) { 
+						e.printStackTrace();
+					}
+					
+				}
 			}
 		}
 
