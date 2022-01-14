@@ -94,6 +94,9 @@ class ChessGame {
 	private Piece[] whitePieces = new Piece[16];
 	private Piece[] blackPieces = new Piece[16];
 
+	private ArrayList<Piece> whitePiecesList = new ArrayList<Piece>();
+	private ArrayList<Piece> blackPiecesList = new ArrayList<Piece>();
+
 	public ChessGame() {
 		this.setupGame();
 		this.turn = 0;
@@ -125,14 +128,20 @@ class ChessGame {
 		this.blackPieces[13] = new Piece(5, 7, 4, 1); // black bishops
 		this.blackPieces[14] = new Piece(3, 7, 2, 1); // black queen
 		this.blackPieces[15] = new Piece(4, 7, 1, 1); // black king
+
+		for (int i = 0; i < 16; i++) {
+			whitePiecesList.add(this.whitePieces[i]);
+			blackPiecesList.add(this.blackPieces[i]);
+		}
+
 	}
 
-	public Piece[] getWhitePieces() {
-		return this.whitePieces;
+	public ArrayList<Piece> getWhitePieces() {
+		return this.whitePiecesList;
 	}
 
-	public Piece[] getBlackPieces() {
-		return this.blackPieces;
+	public ArrayList<Piece> getBlackPieces() {
+		return this.blackPiecesList;
 	}
 
 	public int getCurrentTurn() {
@@ -149,12 +158,14 @@ class ChessGame {
 	// find the piece at a given location
 	public Piece pieceLookUp(int x, int y) {
 		Piece piece = null;
-		for (int i = 0; i < 16; i++) {
-			if (whitePieces[i].getPieceX() == x && whitePieces[i].getPieceY() == y) {
-				return whitePieces[i];
+		for (int i = 0; i < whitePiecesList.size(); i++) {
+			if (whitePiecesList.get(i).getPieceX() == x && whitePiecesList.get(i).getPieceY() == y) {
+				return whitePiecesList.get(i);
 			}
-			if (blackPieces[i].getPieceX() == x && blackPieces[i].getPieceY() == y) {
-				return blackPieces[i];
+		}
+		for (int j = 0; j < blackPiecesList.size(); j++) {
+			if (blackPiecesList.get(j).getPieceX() == x && blackPiecesList.get(j).getPieceY() == y) {
+				return blackPiecesList.get(j);
 			}
 		}
 		return piece;
@@ -162,34 +173,43 @@ class ChessGame {
 
 	// remove a piece at a given location
 	public void removePiece(int x, int y) {
-		for (int i = 0; i < 16; i++) {
-			if (whitePieces[i].getPieceX() == x && whitePieces[i].getPieceY() == y) {
-				whitePieces[i] = null;
+		for (int i = 0; i < whitePiecesList.size(); i++) {
+			if (whitePiecesList.get(i).getPieceX() == x && whitePiecesList.get(i).getPieceY() == y) {
+				whitePiecesList.remove(i);
 			}
-			if (blackPieces[i].getPieceX() == x && blackPieces[i].getPieceY() == y) {
-				blackPieces[i] = null;
+		}
+		for (int j = 0; j < blackPiecesList.size(); j++) {
+			if (blackPiecesList.get(j).getPieceX() == x && blackPiecesList.get(j).getPieceY() == y) {
+				blackPiecesList.remove(j);
 			}
 		}
 	}
 
 	// modify a game piece
 	public void modifyPiece(Square originalPos, Square newPos) {
-		for (int i = 0; i < 16; i++) {
-			if (whitePieces[i].getPieceX() == originalPos.getX() && whitePieces[i].getPieceY() == originalPos.getY()) {
-				whitePieces[i].setPieceX(newPos.getX());
-				whitePieces[i].setPieceY(newPos.getY());
+		for (int i = 0; i < whitePiecesList.size(); i++) {
+			if (whitePiecesList.get(i).getPieceX() == originalPos.getX()
+					&& whitePiecesList.get(i).getPieceY() == originalPos.getY()) {
+				whitePiecesList.get(i).setPieceX(newPos.getX());
+				whitePiecesList.get(i).setPieceY(newPos.getY());
 			}
-			if (blackPieces[i].getPieceX() == originalPos.getX() && blackPieces[i].getPieceY() == originalPos.getY()) {
-				blackPieces[i].setPieceX(newPos.getX());
-				blackPieces[i].setPieceY(newPos.getY());
+		}
+		for (int j = 0; j < blackPiecesList.size(); j++) {
+			if (blackPiecesList.get(j).getPieceX() == originalPos.getX()
+					&& blackPiecesList.get(j).getPieceY() == originalPos.getY()) {
+				blackPiecesList.get(j).setPieceX(newPos.getX());
+				blackPiecesList.get(j).setPieceY(newPos.getY());
 			}
 		}
 	}
 
 	public void movePiece(Piece piece, Square move) {
+		if (piece == null || move == null)
+			return;
 		Piece attackedPiece = pieceLookUp(move.getX(), move.getY());
 		if (attackedPiece != null) {
 			removePiece(attackedPiece.getPieceX(), attackedPiece.getPieceY());
+			System.out.println("removed piece" + attackedPiece);
 		}
 		Square originalPos = new Square(piece.getPieceX(), piece.getPieceY());
 		modifyPiece(originalPos, move);
@@ -296,11 +316,11 @@ public class Chess extends ApplicationAdapter {
 
 	private ChessGame chessGame = new ChessGame();
 
-	private Piece whitePieces[] = new Piece[16];
-	private Piece blackPieces[] = new Piece[16];
+	private ArrayList<Piece> whitePieces = new ArrayList<Piece>();
+	private ArrayList<Piece> blackPieces = new ArrayList<Piece>();
 	private Piece selectedPiece;
 	private Piece temporaryPiece;
-	
+
 	private OrthographicCamera camera;
 	private SpriteBatch batch;
 
@@ -339,11 +359,13 @@ public class Chess extends ApplicationAdapter {
 				batch.draw(selectedSquareTexture, moveList.get(i).getX() * 60, moveList.get(i).getY() * 60);
 			}
 		}
-		for (int i = 0; i < 16; i++) {
-			batch.draw(whitePieceTextures[whitePieces[i].getPieceType()], whitePieces[i].getPieceX() * 60,
-					whitePieces[i].getPieceY() * 60);
-			batch.draw(blackPieceTextures[blackPieces[i].getPieceType()], blackPieces[i].getPieceX() * 60,
-					blackPieces[i].getPieceY() * 60);
+		for (int i = 0; i < whitePieces.size(); i++) {
+			batch.draw(whitePieceTextures[whitePieces.get(i).getPieceType()], whitePieces.get(i).getPieceX() * 60,
+					whitePieces.get(i).getPieceY() * 60);
+		}
+		for (int j = 0; j < blackPieces.size(); j++) {
+			batch.draw(blackPieceTextures[blackPieces.get(j).getPieceType()], blackPieces.get(j).getPieceX() * 60,
+					blackPieces.get(j).getPieceY() * 60);
 		}
 		batch.end();
 		if (Gdx.input.isTouched()) {
@@ -354,31 +376,29 @@ public class Chess extends ApplicationAdapter {
 			int b = (int) (touchPos.y - (touchPos.y % 60));
 			tempSquare = new Square(a / 60, b / 60);
 			temporaryPiece = chessGame.pieceLookUp(tempSquare.getX(), tempSquare.getY());
-			if (temporaryPiece != null
-					&& temporaryPiece.getPieceColour() == chessGame.getCurrentTurn()) {
+			if (temporaryPiece != null && temporaryPiece.getPieceColour() == chessGame.getCurrentTurn()) {
 				selectedPiece = temporaryPiece;
 				moveList = chessGame.generateMoveList(selectedPiece);
 				projectedSquare = new Square(a, b);
 				selectedMove = null;
-			}
-			else {
+			} else {
 				selectedMove = tempSquare;
 			}
 			if (selectedPiece != null && selectedMove != null) {
 				for (int i = 0; i < moveList.size(); i++) {
 					try {
-						if (moveList.get(i).getX() == selectedMove.getX() && moveList.get(i).getY() == selectedMove.getY()) {
+						if (moveList.get(i).getX() == selectedMove.getX()
+								&& moveList.get(i).getY() == selectedMove.getY()) {
 							System.out.println(selectedPiece);
 							System.out.println(selectedMove);
 							chessGame.movePiece(selectedPiece, selectedMove);
 							selectedMove = null;
-							chessGame.nextTurn();
+							// chessGame.nextTurn();
 						}
-					}
-					catch (Exception e) { 
+					} catch (Exception e) {
 						e.printStackTrace();
 					}
-					
+
 				}
 			}
 		}
