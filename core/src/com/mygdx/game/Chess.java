@@ -207,9 +207,9 @@ class ChessGame {
 		if (piece == null || move == null)
 			return;
 		Piece attackedPiece = pieceLookUp(move.getX(), move.getY());
-		if (attackedPiece != null) {
+		if (attackedPiece != null && attackedPiece.getPieceColour() != piece.getPieceColour()) {
 			removePiece(attackedPiece.getPieceX(), attackedPiece.getPieceY());
-			System.out.println("removed piece" + attackedPiece);
+			System.out.println("removed piece" + attackedPiece + " with attacking piece " + piece);
 		}
 		Square originalPos = new Square(piece.getPieceX(), piece.getPieceY());
 		modifyPiece(originalPos, move);
@@ -331,6 +331,8 @@ public class Chess extends ApplicationAdapter {
 
 	private ArrayList<Square> moveList;
 
+	private boolean moveMade = false;
+	
 	@Override
 	public void create() {
 		chessboard = new Texture(Gdx.files.internal("chessboard4.png"));
@@ -392,8 +394,8 @@ public class Chess extends ApplicationAdapter {
 							System.out.println(selectedPiece);
 							System.out.println(selectedMove);
 							chessGame.movePiece(selectedPiece, selectedMove);
+							moveMade = true;
 							selectedMove = null;
-							// chessGame.nextTurn();
 						}
 					} catch (Exception e) {
 						e.printStackTrace();
@@ -402,7 +404,13 @@ public class Chess extends ApplicationAdapter {
 				}
 			}
 		}
-
+		if (moveMade) {
+			selectedPiece = null;
+			selectedMove = null;
+			moveMade = false;
+			chessGame.nextTurn();
+			System.out.println("Move made, next turn is " + chessGame.getCurrentTurn());
+		}
 	}
 
 	@Override
