@@ -276,6 +276,9 @@ class ChessGame {
 		int pieceX = piece.getPieceX();
 		int pieceY = piece.getPieceY();
 		Square temp = null;
+		if (piece.getPieceType() == 0) {
+			
+		}
 		switch (piece.getPieceType()) {
 		case 0: // if piece == pawn
 			switch (piece.getPieceColour()) { // absolutely dreadful code
@@ -357,8 +360,42 @@ class ChessGame {
 			}
 			break;
 		case 4: // bishop
+			offsetList = getPieceOffset(piece);
+			for (int i = 0; i < offsetList.size(); i++) {
+				for (int j = 1; j < 8; j++) {
+					Square newMove = new Square(piece.getPieceX() + offsetList.get(i).getX()*j, piece.getPieceY() + offsetList.get(i).getY()*j);
+					Piece attackedPiece = pieceLookUp(newMove.getX(),newMove.getY());
+					if (attackedPiece == null) {
+						moveList.add(newMove);
+					}
+					else if (attackedPiece.getPieceColour() != piece.getPieceColour()) {
+						moveList.add(newMove);
+						break;
+					}
+					else {
+						break;
+					}
+				}
+			}
 			break;
 		case 5: // rook
+			offsetList = getPieceOffset(piece);
+			for (int i = 0; i < offsetList.size(); i++) {
+				for (int j = 1; j < 8; j++) {
+					Square newMove = new Square(piece.getPieceX() + offsetList.get(i).getX()*j, piece.getPieceY() + offsetList.get(i).getY()*j);
+					Piece attackedPiece = pieceLookUp(newMove.getX(),newMove.getY());
+					if (attackedPiece == null) {
+						moveList.add(newMove);
+					}
+					else if (attackedPiece.getPieceColour() != piece.getPieceColour()) {
+						moveList.add(newMove);
+						break;
+					}
+					else {
+						break;
+					}
+				}
+			}
 			break;
 		}
 		return moveList;
