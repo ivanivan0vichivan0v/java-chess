@@ -328,7 +328,23 @@ class ChessGame {
 			}
 			break;
 		case 2: // queen
-			
+			offsetList = getPieceOffset(piece);
+			for (int i = 0; i < offsetList.size(); i++) {
+				for (int j = 1; j < 8; j++) {
+					Square newMove = new Square(piece.getPieceX() + offsetList.get(i).getX()*j, piece.getPieceY() + offsetList.get(i).getY()*j);
+					Piece attackedPiece = pieceLookUp(newMove.getX(),newMove.getY());
+					if (attackedPiece == null) {
+						moveList.add(newMove);
+					}
+					else if (attackedPiece.getPieceColour() != piece.getPieceColour()) {
+						moveList.add(newMove);
+						break;
+					}
+					else {
+						break;
+					}
+				}
+			}
 			break;
 		case 3: // knight
 			offsetList = getPieceOffset(piece);
