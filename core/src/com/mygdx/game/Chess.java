@@ -217,20 +217,47 @@ class ChessGame {
 
 	public ArrayList<Square> getPieceOffset(Piece piece) {
 		ArrayList<Square> offsetList = new ArrayList<Square>();
-		int pieceX = piece.getPieceX();
-		int pieceY = piece.getPieceY();
-
+		Square baseOffset[] = new Square[8];
+		baseOffset[0] = new Square(-1, 1);
+		baseOffset[1] = new Square(1, 1);
+		baseOffset[2] = new Square(-1, -1); 
+		baseOffset[3] = new Square(1, -1); // all four diagonals
+		baseOffset[4] = new Square(0, 1);
+		baseOffset[5] = new Square(1, 0);
+		baseOffset[6] = new Square(0, -1);
+		baseOffset[7] = new Square(-1, 0); // four adjacent sides
+		Square knightOffset[] = new Square[8];
+		knightOffset[0] = new Square(-1, 2);
+		knightOffset[1] = new Square(-2, 1);
+		knightOffset[2] = new Square(-2, -1);
+		knightOffset[3] = new Square(-1, -2);
+		knightOffset[4] = new Square(1, -2);
+		knightOffset[5] = new Square(2, -1);
+		knightOffset[6] = new Square(1, 2);
+		knightOffset[7] = new Square(2, 1);
 		switch (piece.getPieceType()) {
-		case 1:
-
+		case 1: // king
+			for (int i = 0; i < 8; i++) {
+				offsetList.add(baseOffset[i]);
+			}
 			break;
-		case 2:
+		case 2: // queen
+			for (int i = 0; i < 8; i++) {
+				offsetList.add(baseOffset[i]);
+			}
 			break;
-		case 3:
+		case 3: // knight
+			
 			break;
-		case 4:
+		case 4: // bishop
+			for (int i = 0; i < 4; i++) {
+				offsetList.add(baseOffset[i]);
+			}
 			break;
-		case 5:
+		case 5: // rook
+			for (int i = 4; i < 8; i++) {
+				offsetList.add(baseOffset[i]);
+			}
 			break;
 		}
 		return offsetList;
@@ -249,7 +276,7 @@ class ChessGame {
 		switch (piece.getPieceType()) {
 		case 0: // if piece == pawn
 			switch (piece.getPieceColour()) { // absolutely dreadful code
-			case 0:
+			case 0: // white pawn
 				if (pieceLookUp(pieceX - 1, pieceY + 1) != null) {
 					temp = new Square(pieceX - 1, pieceY + 1);
 					moveList.add(temp);
@@ -267,7 +294,7 @@ class ChessGame {
 					moveList.add(temp);
 				}
 				break;
-			case 1:
+			case 1: // black pawn
 				if (pieceLookUp(pieceX - 1, pieceY - 1) != null) {
 					temp = new Square(pieceX - 1, pieceY - 1);
 					moveList.add(temp);
@@ -287,21 +314,15 @@ class ChessGame {
 				break;
 			}
 			break;
-		case 1:
-
-			break;
-		case 2:
-
-			break;
-		case 3:
-
-			break;
-		case 4:
-
-			break;
-		case 5:
-
-			break;
+		}
+		if (piece.getPieceType() != 0) {
+			for (int i = 0; i < 8; i++) {
+				Square newMove = new Square(piece.getPieceX() + baseOffset[i].getX(), piece.getPieceY() + baseOffset[i].getY()); // generates move based on offset
+				Piece attackedSquare = pieceLookUp(newMove.getX(), newMove.getY()); // finds if there is a piece at move location
+				if (attackedSquare == null || attackedSquare.getPieceColour() != piece.getPieceColour()) {
+					offsetList.add(newMove);
+				}
+			}
 		}
 		return moveList;
 	}
@@ -325,7 +346,6 @@ public class Chess extends ApplicationAdapter {
 	private SpriteBatch batch;
 
 	private Square projectedSquare = new Square(-100, -100);
-	private Square selectedSquare;
 	private Square selectedMove = null;
 	private Square tempSquare;
 
@@ -405,6 +425,7 @@ public class Chess extends ApplicationAdapter {
 			}
 		}
 		if (moveMade) {
+			moveList = null;
 			selectedPiece = null;
 			selectedMove = null;
 			moveMade = false;
