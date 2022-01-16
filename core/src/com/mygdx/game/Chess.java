@@ -247,7 +247,9 @@ class ChessGame {
 			}
 			break;
 		case 3: // knight
-			
+			for (int i = 0; i < 8; i++) {
+				offsetList.add(knightOffset[i]);
+			}
 			break;
 		case 4: // bishop
 			for (int i = 0; i < 4; i++) {
@@ -270,6 +272,7 @@ class ChessGame {
 			return null;
 		}
 		ArrayList<Square> moveList = new ArrayList<Square>();
+		ArrayList<Square> offsetList = new ArrayList<Square>();
 		int pieceX = piece.getPieceX();
 		int pieceY = piece.getPieceY();
 		Square temp = null;
@@ -314,15 +317,32 @@ class ChessGame {
 				break;
 			}
 			break;
-		}
-		if (piece.getPieceType() != 0) {
-			for (int i = 0; i < 8; i++) {
-				Square newMove = new Square(piece.getPieceX() + baseOffset[i].getX(), piece.getPieceY() + baseOffset[i].getY()); // generates move based on offset
-				Piece attackedSquare = pieceLookUp(newMove.getX(), newMove.getY()); // finds if there is a piece at move location
-				if (attackedSquare == null || attackedSquare.getPieceColour() != piece.getPieceColour()) {
-					offsetList.add(newMove);
+		case 1:
+			offsetList = getPieceOffset(piece);
+			for (int i = 0; i < offsetList.size(); i++) {
+				Square newMove = new Square(piece.getPieceX() + offsetList.get(i).getX(), piece.getPieceY() + offsetList.get(i).getY());
+				Piece attackedPiece = pieceLookUp(newMove.getX(),newMove.getY());
+				if (attackedPiece == null || attackedPiece.getPieceColour() != piece.getPieceColour()) {
+					moveList.add(newMove);
 				}
 			}
+			break;
+		case 2: // queen
+			break;
+		case 3: // knight
+			offsetList = getPieceOffset(piece);
+			for (int i = 0; i < offsetList.size(); i++) {
+				Square newMove = new Square(piece.getPieceX() + offsetList.get(i).getX(), piece.getPieceY() + offsetList.get(i).getY());
+				Piece attackedPiece = pieceLookUp(newMove.getX(),newMove.getY());
+				if (attackedPiece == null || attackedPiece.getPieceColour() != piece.getPieceColour()) {
+					moveList.add(newMove);
+				}
+			}
+			break;
+		case 4: // bishop
+			break;
+		case 5: // rook
+			break;
 		}
 		return moveList;
 	}
