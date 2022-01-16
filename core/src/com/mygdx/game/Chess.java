@@ -328,6 +328,7 @@ class ChessGame {
 			}
 			break;
 		case 2: // queen
+			
 			break;
 		case 3: // knight
 			offsetList = getPieceOffset(piece);
@@ -435,10 +436,9 @@ public class Chess extends ApplicationAdapter {
 							System.out.println(selectedMove);
 							chessGame.movePiece(selectedPiece, selectedMove);
 							moveMade = true;
-							selectedMove = null;
 						}
 					} catch (Exception e) {
-						e.printStackTrace();
+						System.out.println(moveList.size());
 					}
 
 				}
