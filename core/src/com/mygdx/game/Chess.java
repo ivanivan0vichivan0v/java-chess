@@ -13,33 +13,42 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector;
 import com.badlogic.gdx.math.Vector3;
 
+// Square class
+// object for holding a set of coordinates (which correspond to a square) conveniently
 class Square {
-	private int x;
-	private int y;
+	private int x; // x coord of square
+	private int y; // y coord of square
 
+	// Square()
+	// instantiates a square
 	public Square(int x, int y) {
 		this.x = x;
 		this.y = y;
 	}
 
+	// prints x and y of square
 	public String toString() {
 		String square = "";
 		square = square + " X:" + this.x + " Y:" + this.y;
 		return square;
 	}
 
+	// obtain x of a square
 	public int getX() {
 		return this.x;
 	}
 
+	// obtain y of a square
 	public int getY() {
 		return this.y;
 	}
 
+	// set x of a square
 	public void setX(int x) {
 		this.x = x;
 	}
 
+	// set y of a square
 	public void setY(int y) {
 		this.y = y;
 	}
@@ -51,6 +60,7 @@ class Piece {
 	private int type; // 0 = pawn, 1 = king, 2 = queen, 3 = knight, 4 = bishop, 5 = rook
 	private int colour; // 0 = white, 1 = black
 
+	// creates a new piece
 	public Piece(int x, int y, int type, int colour) {
 		this.x = x;
 		this.y = y;
@@ -58,37 +68,45 @@ class Piece {
 		this.colour = colour;
 	}
 
+	// prints attributes of piece
 	public String toString() {
 		String piece = "";
 		piece = piece + " X:" + this.x + " Y:" + this.y + " Type:" + this.type + " Colour:" + this.colour;
 		return piece;
 	}
 
+	// obtains x of piece
 	public int getPieceX() {
 		return this.x;
 	}
 
+	// obtains y of piece
 	public int getPieceY() {
 		return this.y;
 	}
 
+	// obtains piece type
 	public int getPieceType() {
 		return this.type;
 	}
 
+	// obtains piece colour
 	public int getPieceColour() {
 		return this.colour;
 	}
 
+	// sets piece x
 	public void setPieceX(int x) {
 		this.x = x;
 	}
 
+	// sets piece y
 	public void setPieceY(int y) {
 		this.y = y;
 	}
 }
 
+// class which contains game state
 class ChessGame {
 	private int turn; // 0 = white, 1 = black
 	private Piece[] whitePieces = new Piece[16];
@@ -129,25 +147,30 @@ class ChessGame {
 		this.blackPieces[14] = new Piece(3, 7, 2, 1); // black queen
 		this.blackPieces[15] = new Piece(4, 7, 1, 1); // black king
 
-		for (int i = 0; i < 16; i++) {
+		for (int i = 0; i < 16; i++) { // converts array to arraylist (it admittedly would be better to just replace
+										// the original array with an arraylist, but it is easier to do it this way)
 			whitePiecesList.add(this.whitePieces[i]);
 			blackPiecesList.add(this.blackPieces[i]);
 		}
 
 	}
-
+	
+	// returns arraylist of white pieces
 	public ArrayList<Piece> getWhitePieces() {
 		return this.whitePiecesList;
 	}
 
+	// returns arraylist of black pieces
 	public ArrayList<Piece> getBlackPieces() {
 		return this.blackPiecesList;
 	}
 
+	// returns current turn
 	public int getCurrentTurn() {
 		return this.turn;
 	}
 
+	// advances to next turn
 	public void nextTurn() {
 		if (this.turn == 0)
 			this.turn = 1;
@@ -157,8 +180,8 @@ class ChessGame {
 
 	// find the piece at a given location
 	public Piece pieceLookUp(int x, int y) {
-		Piece piece = null;
-		for (int i = 0; i < whitePiecesList.size(); i++) {
+		Piece piece = null; // assume piece is null, have it overwritten if it isn't the case
+		for (int i = 0; i < whitePiecesList.size(); i++) { 
 			if (whitePiecesList.get(i).getPieceX() == x && whitePiecesList.get(i).getPieceY() == y) {
 				return whitePiecesList.get(i);
 			}
@@ -202,6 +225,23 @@ class ChessGame {
 			}
 		}
 	}
+	
+	public void promotePiece(Square originalPos) {
+		for (int i = 0; i < whitePiecesList.size(); i++) {
+			if (whitePiecesList.get(i).getPieceX() == originalPos.getX()
+					&& whitePiecesList.get(i).getPieceY() == originalPos.getY()) {
+				Piece piece = new Piece(originalPos.getX(), originalPos.getY(), 2, 0);
+				whitePiecesList.set(i, piece);
+			}
+		}
+		for (int j = 0; j < blackPiecesList.size(); j++) {
+			if (blackPiecesList.get(j).getPieceX() == originalPos.getX()
+					&& blackPiecesList.get(j).getPieceY() == originalPos.getY()) {
+				Piece piece = new Piece(originalPos.getX(), originalPos.getY(), 2, 1);
+				blackPiecesList.set(j, piece);
+			}
+		}
+	}
 
 	public void movePiece(Piece piece, Square move) {
 		if (piece == null || move == null)
@@ -213,6 +253,9 @@ class ChessGame {
 		}
 		Square originalPos = new Square(piece.getPieceX(), piece.getPieceY());
 		modifyPiece(originalPos, move);
+		if (piece.getPieceColour() == 0 && piece.getPieceY() == 7 || piece.getPieceColour() == 1 && piece.getPieceY() == 0) {
+			promotePiece(move);
+		}
 	}
 
 	public ArrayList<Square> getPieceOffset(Piece piece) {
@@ -220,7 +263,7 @@ class ChessGame {
 		Square baseOffset[] = new Square[8];
 		baseOffset[0] = new Square(-1, 1);
 		baseOffset[1] = new Square(1, 1);
-		baseOffset[2] = new Square(-1, -1); 
+		baseOffset[2] = new Square(-1, -1);
 		baseOffset[3] = new Square(1, -1); // all four diagonals
 		baseOffset[4] = new Square(0, 1);
 		baseOffset[5] = new Square(1, 0);
@@ -277,7 +320,7 @@ class ChessGame {
 		int pieceY = piece.getPieceY();
 		Square temp = null;
 		if (piece.getPieceType() == 0) {
-			
+
 		}
 		switch (piece.getPieceType()) {
 		case 0: // if piece == pawn
@@ -320,11 +363,12 @@ class ChessGame {
 				break;
 			}
 			break;
-		case 1:
+		case 1: // king
 			offsetList = getPieceOffset(piece);
 			for (int i = 0; i < offsetList.size(); i++) {
-				Square newMove = new Square(piece.getPieceX() + offsetList.get(i).getX(), piece.getPieceY() + offsetList.get(i).getY());
-				Piece attackedPiece = pieceLookUp(newMove.getX(),newMove.getY());
+				Square newMove = new Square(piece.getPieceX() + offsetList.get(i).getX(),
+						piece.getPieceY() + offsetList.get(i).getY());
+				Piece attackedPiece = pieceLookUp(newMove.getX(), newMove.getY());
 				if (attackedPiece == null || attackedPiece.getPieceColour() != piece.getPieceColour()) {
 					moveList.add(newMove);
 				}
@@ -334,16 +378,15 @@ class ChessGame {
 			offsetList = getPieceOffset(piece);
 			for (int i = 0; i < offsetList.size(); i++) {
 				for (int j = 1; j < 8; j++) {
-					Square newMove = new Square(piece.getPieceX() + offsetList.get(i).getX()*j, piece.getPieceY() + offsetList.get(i).getY()*j);
-					Piece attackedPiece = pieceLookUp(newMove.getX(),newMove.getY());
+					Square newMove = new Square(piece.getPieceX() + offsetList.get(i).getX() * j,
+							piece.getPieceY() + offsetList.get(i).getY() * j);
+					Piece attackedPiece = pieceLookUp(newMove.getX(), newMove.getY());
 					if (attackedPiece == null) {
 						moveList.add(newMove);
-					}
-					else if (attackedPiece.getPieceColour() != piece.getPieceColour()) {
+					} else if (attackedPiece.getPieceColour() != piece.getPieceColour()) {
 						moveList.add(newMove);
 						break;
-					}
-					else {
+					} else {
 						break;
 					}
 				}
@@ -352,8 +395,9 @@ class ChessGame {
 		case 3: // knight
 			offsetList = getPieceOffset(piece);
 			for (int i = 0; i < offsetList.size(); i++) {
-				Square newMove = new Square(piece.getPieceX() + offsetList.get(i).getX(), piece.getPieceY() + offsetList.get(i).getY());
-				Piece attackedPiece = pieceLookUp(newMove.getX(),newMove.getY());
+				Square newMove = new Square(piece.getPieceX() + offsetList.get(i).getX(),
+						piece.getPieceY() + offsetList.get(i).getY());
+				Piece attackedPiece = pieceLookUp(newMove.getX(), newMove.getY());
 				if (attackedPiece == null || attackedPiece.getPieceColour() != piece.getPieceColour()) {
 					moveList.add(newMove);
 				}
@@ -363,16 +407,15 @@ class ChessGame {
 			offsetList = getPieceOffset(piece);
 			for (int i = 0; i < offsetList.size(); i++) {
 				for (int j = 1; j < 8; j++) {
-					Square newMove = new Square(piece.getPieceX() + offsetList.get(i).getX()*j, piece.getPieceY() + offsetList.get(i).getY()*j);
-					Piece attackedPiece = pieceLookUp(newMove.getX(),newMove.getY());
+					Square newMove = new Square(piece.getPieceX() + offsetList.get(i).getX() * j,
+							piece.getPieceY() + offsetList.get(i).getY() * j);
+					Piece attackedPiece = pieceLookUp(newMove.getX(), newMove.getY());
 					if (attackedPiece == null) {
 						moveList.add(newMove);
-					}
-					else if (attackedPiece.getPieceColour() != piece.getPieceColour()) {
+					} else if (attackedPiece.getPieceColour() != piece.getPieceColour()) {
 						moveList.add(newMove);
 						break;
-					}
-					else {
+					} else {
 						break;
 					}
 				}
@@ -382,16 +425,15 @@ class ChessGame {
 			offsetList = getPieceOffset(piece);
 			for (int i = 0; i < offsetList.size(); i++) {
 				for (int j = 1; j < 8; j++) {
-					Square newMove = new Square(piece.getPieceX() + offsetList.get(i).getX()*j, piece.getPieceY() + offsetList.get(i).getY()*j);
-					Piece attackedPiece = pieceLookUp(newMove.getX(),newMove.getY());
+					Square newMove = new Square(piece.getPieceX() + offsetList.get(i).getX() * j,
+							piece.getPieceY() + offsetList.get(i).getY() * j);
+					Piece attackedPiece = pieceLookUp(newMove.getX(), newMove.getY());
 					if (attackedPiece == null) {
 						moveList.add(newMove);
-					}
-					else if (attackedPiece.getPieceColour() != piece.getPieceColour()) {
+					} else if (attackedPiece.getPieceColour() != piece.getPieceColour()) {
 						moveList.add(newMove);
 						break;
-					}
-					else {
+					} else {
 						break;
 					}
 				}
@@ -426,7 +468,7 @@ public class Chess extends ApplicationAdapter {
 	private ArrayList<Square> moveList;
 
 	private boolean moveMade = false;
-	
+
 	@Override
 	public void create() {
 		chessboard = new Texture(Gdx.files.internal("chessboard4.png"));
