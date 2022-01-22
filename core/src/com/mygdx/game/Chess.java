@@ -2,6 +2,7 @@ package com.mygdx.game;
 
 import java.util.ArrayList;
 import java.util.ListIterator;
+import java.util.Stack;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
@@ -18,6 +19,8 @@ import com.badlogic.gdx.math.Vector3;
 class Square {
 	private int x; // x coord of square
 	private int y; // y coord of square
+	private boolean enPassant = false; // holds whether move is enPassant
+	private boolean promotion = false; // holds whether move is promotion
 
 	// Square()
 	// instantiates a square
@@ -52,6 +55,23 @@ class Square {
 	public void setY(int y) {
 		this.y = y;
 	}
+	
+	public void setEnPassant() {
+		this.enPassant = !this.enPassant;
+	}
+	
+	public void setPromotion() {
+		this.promotion = !this.promotion;
+	}
+	
+	public boolean getEnPassant() {
+		return this.enPassant;
+	}
+	
+	public boolean getPromotion() {
+		return this.promotion;
+	}
+	
 }
 
 class Piece {
@@ -59,7 +79,7 @@ class Piece {
 	private int y; // y pos of piece
 	private int type; // 0 = pawn, 1 = king, 2 = queen, 3 = knight, 4 = bishop, 5 = rook
 	private int colour; // 0 = white, 1 = black
-
+	
 	// creates a new piece
 	public Piece(int x, int y, int type, int colour) {
 		this.x = x;
@@ -109,6 +129,10 @@ class Piece {
 // class which contains game state
 class ChessGame {
 	private int turn; // 0 = white, 1 = black
+	
+	Stack<Piece> previousPieces = new Stack<Piece>();
+	Stack<Square> previousMoves = new Stack<Square>();
+	
 	private Piece[] whitePieces = new Piece[16];
 	private Piece[] blackPieces = new Piece[16];
 
@@ -154,7 +178,7 @@ class ChessGame {
 		}
 
 	}
-	
+
 	// returns arraylist of white pieces
 	public ArrayList<Piece> getWhitePieces() {
 		return this.whitePiecesList;
@@ -177,18 +201,18 @@ class ChessGame {
 		else
 			this.turn = 0;
 	}
-
+	
 	// find the piece at a given location
 	public Piece pieceLookUp(int x, int y) {
 		Piece piece = null; // assume piece is null, have it overwritten if it isn't the case
-		for (int i = 0; i < whitePiecesList.size(); i++) { 
-			if (whitePiecesList.get(i).getPieceX() == x && whitePiecesList.get(i).getPieceY() == y) {
-				return whitePiecesList.get(i);
+		for (int i = 0; i < this.whitePiecesList.size(); i++) {
+			if (this.whitePiecesList.get(i).getPieceX() == x && this.whitePiecesList.get(i).getPieceY() == y) {
+				return this.whitePiecesList.get(i);
 			}
 		}
-		for (int j = 0; j < blackPiecesList.size(); j++) {
-			if (blackPiecesList.get(j).getPieceX() == x && blackPiecesList.get(j).getPieceY() == y) {
-				return blackPiecesList.get(j);
+		for (int j = 0; j < this.blackPiecesList.size(); j++) {
+			if (this.blackPiecesList.get(j).getPieceX() == x && this.blackPiecesList.get(j).getPieceY() == y) {
+				return this.blackPiecesList.get(j);
 			}
 		}
 		return piece;
@@ -196,65 +220,79 @@ class ChessGame {
 
 	// remove a piece at a given location
 	public void removePiece(int x, int y) {
-		for (int i = 0; i < whitePiecesList.size(); i++) {
-			if (whitePiecesList.get(i).getPieceX() == x && whitePiecesList.get(i).getPieceY() == y) {
-				whitePiecesList.remove(i);
+		for (int i = 0; i < this.whitePiecesList.size(); i++) {
+			if (this.whitePiecesList.get(i).getPieceX() == x && this.whitePiecesList.get(i).getPieceY() == y) {
+				this.whitePiecesList.remove(i);
 			}
 		}
-		for (int j = 0; j < blackPiecesList.size(); j++) {
-			if (blackPiecesList.get(j).getPieceX() == x && blackPiecesList.get(j).getPieceY() == y) {
-				blackPiecesList.remove(j);
+		for (int j = 0; j < this.blackPiecesList.size(); j++) {
+			if (this.blackPiecesList.get(j).getPieceX() == x && this.blackPiecesList.get(j).getPieceY() == y) {
+				this.blackPiecesList.remove(j);
 			}
 		}
 	}
 
 	// modify a game piece
 	public void modifyPiece(Square originalPos, Square newPos) {
-		for (int i = 0; i < whitePiecesList.size(); i++) {
-			if (whitePiecesList.get(i).getPieceX() == originalPos.getX()
-					&& whitePiecesList.get(i).getPieceY() == originalPos.getY()) {
-				whitePiecesList.get(i).setPieceX(newPos.getX());
-				whitePiecesList.get(i).setPieceY(newPos.getY());
+		for (int i = 0; i < this.whitePiecesList.size(); i++) {
+			if (this.whitePiecesList.get(i).getPieceX() == originalPos.getX()
+					&& this.whitePiecesList.get(i).getPieceY() == originalPos.getY()) {
+				this.whitePiecesList.get(i).setPieceX(newPos.getX());
+				this.whitePiecesList.get(i).setPieceY(newPos.getY());
 			}
 		}
 		for (int j = 0; j < blackPiecesList.size(); j++) {
-			if (blackPiecesList.get(j).getPieceX() == originalPos.getX()
-					&& blackPiecesList.get(j).getPieceY() == originalPos.getY()) {
-				blackPiecesList.get(j).setPieceX(newPos.getX());
-				blackPiecesList.get(j).setPieceY(newPos.getY());
-			}
-		}
-	}
-	
-	public void promotePiece(Square originalPos) {
-		for (int i = 0; i < whitePiecesList.size(); i++) {
-			if (whitePiecesList.get(i).getPieceX() == originalPos.getX()
-					&& whitePiecesList.get(i).getPieceY() == originalPos.getY()) {
-				Piece piece = new Piece(originalPos.getX(), originalPos.getY(), 2, 0);
-				whitePiecesList.set(i, piece);
-			}
-		}
-		for (int j = 0; j < blackPiecesList.size(); j++) {
-			if (blackPiecesList.get(j).getPieceX() == originalPos.getX()
-					&& blackPiecesList.get(j).getPieceY() == originalPos.getY()) {
-				Piece piece = new Piece(originalPos.getX(), originalPos.getY(), 2, 1);
-				blackPiecesList.set(j, piece);
+			if (this.blackPiecesList.get(j).getPieceX() == originalPos.getX()
+					&& this.blackPiecesList.get(j).getPieceY() == originalPos.getY()) {
+				this.blackPiecesList.get(j).setPieceX(newPos.getX());
+				this.blackPiecesList.get(j).setPieceY(newPos.getY());
 			}
 		}
 	}
 
+	// promote a pawn to a queen
+	public void promotePiece(Square originalPos) {
+		for (int i = 0; i < this.whitePiecesList.size(); i++) {
+			if (this.whitePiecesList.get(i).getPieceX() == originalPos.getX()
+					&& this.whitePiecesList.get(i).getPieceY() == originalPos.getY()) {
+				Piece piece = new Piece(originalPos.getX(), originalPos.getY(), 2, 0); // 2 means queen, 0 means white
+				this.whitePiecesList.set(i, piece);
+			}
+		}
+		for (int j = 0; j < blackPiecesList.size(); j++) {
+			if (this.blackPiecesList.get(j).getPieceX() == originalPos.getX()
+					&& this.blackPiecesList.get(j).getPieceY() == originalPos.getY()) {
+				Piece piece = new Piece(originalPos.getX(), originalPos.getY(), 2, 1); // 2 means queen, 1 means black
+				this.blackPiecesList.set(j, piece);
+			}
+		}
+	}
+
+	// handles the execution of a piece move
 	public void movePiece(Piece piece, Square move) {
-		if (piece == null || move == null)
+		if (piece == null || move == null) // return if piece or move is null
 			return;
-		Piece attackedPiece = pieceLookUp(move.getX(), move.getY());
+		Piece newPiece = new Piece(piece.getPieceX(), piece.getPieceY(), piece.getPieceType(), piece.getPieceColour());
+		previousPieces.push(newPiece);
+		previousMoves.push(move);
+		
+		
+		Piece attackedPiece = pieceLookUp(move.getX(), move.getY()); // find if there is a piece at the desired move
+																		// location
 		if (attackedPiece != null && attackedPiece.getPieceColour() != piece.getPieceColour()) {
-			removePiece(attackedPiece.getPieceX(), attackedPiece.getPieceY());
+			removePiece(attackedPiece.getPieceX(), attackedPiece.getPieceY()); // remove piece if there is one at the
+																				// requested position
 			System.out.println("removed piece" + attackedPiece + " with attacking piece " + piece);
 		}
 		Square originalPos = new Square(piece.getPieceX(), piece.getPieceY());
-		modifyPiece(originalPos, move);
-		if (piece.getPieceColour() == 0 && piece.getPieceY() == 7 || piece.getPieceColour() == 1 && piece.getPieceY() == 0) {
+		modifyPiece(originalPos, move); // move piece to requested position
+		if (piece.getPieceColour() == 0 && piece.getPieceY() == 7
+				|| piece.getPieceColour() == 1 && piece.getPieceY() == 0) { // if white pawn or black pawn on last row,
+																			// promote said pawn
 			promotePiece(move);
+		}
+		if (move.getEnPassant()) {
+			removePiece(move.getX(), move.getY() - 1);
 		}
 	}
 
@@ -319,9 +357,10 @@ class ChessGame {
 		int pieceX = piece.getPieceX();
 		int pieceY = piece.getPieceY();
 		Square temp = null;
-		if (piece.getPieceType() == 0) {
-
+		if (!previousPieces.isEmpty()) {
+			System.out.println(previousPieces.peek() + " " + previousMoves.peek());
 		}
+		
 		switch (piece.getPieceType()) {
 		case 0: // if piece == pawn
 			switch (piece.getPieceColour()) { // absolutely dreadful code
@@ -341,6 +380,15 @@ class ChessGame {
 				if (pieceY == 1 && pieceLookUp(pieceX, pieceY + 1) == null && pieceLookUp(pieceX, pieceY + 2) == null) {
 					temp = new Square(pieceX, pieceY + 2);
 					moveList.add(temp);
+				}
+				if (!previousPieces.isEmpty() && !previousMoves.isEmpty()) {
+					Piece previousPiece = previousPieces.peek();
+					Square previousMove = previousMoves.peek();
+					if (pieceY == 4 && previousPiece.getPieceType() == 0 && (previousPiece.getPieceY() - previousMove.getY()) == 2 && ((previousMove.getX() == (pieceX - 1)) || previousMove.getX() == (pieceX + 1))) {
+						temp = new Square(previousMove.getX(), pieceY + 1);
+						temp.setEnPassant();
+						moveList.add(temp);
+					}
 				}
 				break;
 			case 1: // black pawn
@@ -457,7 +505,7 @@ public class Chess extends ApplicationAdapter {
 	private ArrayList<Piece> blackPieces = new ArrayList<Piece>();
 	private Piece selectedPiece;
 	private Piece temporaryPiece;
-
+	
 	private OrthographicCamera camera;
 	private SpriteBatch batch;
 
@@ -529,7 +577,7 @@ public class Chess extends ApplicationAdapter {
 								&& moveList.get(i).getY() == selectedMove.getY()) {
 							System.out.println(selectedPiece);
 							System.out.println(selectedMove);
-							chessGame.movePiece(selectedPiece, selectedMove);
+							selectedMove = moveList.get(i);
 							moveMade = true;
 						}
 					} catch (Exception e) {
@@ -540,6 +588,7 @@ public class Chess extends ApplicationAdapter {
 			}
 		}
 		if (moveMade) {
+			chessGame.movePiece(selectedPiece, selectedMove);
 			moveList = null;
 			selectedPiece = null;
 			selectedMove = null;

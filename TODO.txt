@@ -1,7 +1,8 @@
 TODO:
-Castling
-Promotion
-En passant
-Check/checkmate
-UI?
-AI
+-Castling
+-Promotion, done
+-En passant
+-Check/checkmate
+-Menu/UI?
+-AI
+-Fix bug with being able to move pieces out of screen
