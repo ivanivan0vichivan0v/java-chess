@@ -15,15 +15,17 @@ import com.badlogic.gdx.math.Vector;
 import com.badlogic.gdx.math.Vector3;
 
 // Square class
-// object for holding a set of coordinates (which correspond to a square) conveniently
+// object for holding a set of coordinates (which correspond to a square) conveniently, along with other attributes of a move
 class Square {
 	private int x; // x coord of square
 	private int y; // y coord of square
 	private boolean enPassant = false; // holds whether move is enPassant
 	private boolean promotion = false; // holds whether move is promotion
+	private boolean queenCastle = false; // holds whether move is castling queenside
+	private boolean kingCastle = false; // holds whether move is castling kingside
 
 	// Square()
-	// instantiates a square
+	// instantiates a squares
 	public Square(int x, int y) {
 		this.x = x;
 		this.y = y;
@@ -79,6 +81,7 @@ class Piece {
 	private int y; // y pos of piece
 	private int type; // 0 = pawn, 1 = king, 2 = queen, 3 = knight, 4 = bishop, 5 = rook
 	private int colour; // 0 = white, 1 = black
+	private boolean hasMoved; // holds whether piece was moved (used to check whether piece can castle or not)
 	
 	// creates a new piece
 	public Piece(int x, int y, int type, int colour) {
@@ -292,13 +295,20 @@ class ChessGame {
 			promotePiece(move);
 		}
 		if (move.getEnPassant()) {
-			removePiece(move.getX(), move.getY() - 1);
+			switch (piece.getPieceColour()) {
+			case 0:
+				removePiece(move.getX(), move.getY() - 1);
+				break;
+			case 1:
+				removePiece(move.getX(), move.getY() + 1);
+				break;
+			}
 		}
 	}
 
 	public ArrayList<Square> getPieceOffset(Piece piece) {
 		ArrayList<Square> offsetList = new ArrayList<Square>();
-		Square baseOffset[] = new Square[8];
+		Square baseOffset[] = new Square[8]; // there is probably a more elegant way to do this but it really shouldn't matter
 		baseOffset[0] = new Square(-1, 1);
 		baseOffset[1] = new Square(1, 1);
 		baseOffset[2] = new Square(-1, -1);
@@ -307,7 +317,7 @@ class ChessGame {
 		baseOffset[5] = new Square(1, 0);
 		baseOffset[6] = new Square(0, -1);
 		baseOffset[7] = new Square(-1, 0); // four adjacent sides
-		Square knightOffset[] = new Square[8];
+		Square knightOffset[] = new Square[8];  // there is probably a more elegant way to do this but it really shouldn't matter
 		knightOffset[0] = new Square(-1, 2);
 		knightOffset[1] = new Square(-2, 1);
 		knightOffset[2] = new Square(-2, -1);
@@ -352,8 +362,8 @@ class ChessGame {
 		if (piece == null) {
 			return null;
 		}
-		ArrayList<Square> moveList = new ArrayList<Square>();
-		ArrayList<Square> offsetList = new ArrayList<Square>();
+		ArrayList<Square> moveList = new ArrayList<Square>(); // arraylist which contains all moves
+		ArrayList<Square> offsetList = new ArrayList<Square>(); // contains offset generated from getPieceOffset function
 		int pieceX = piece.getPieceX();
 		int pieceY = piece.getPieceY();
 		Square temp = null;
@@ -365,11 +375,11 @@ class ChessGame {
 		case 0: // if piece == pawn
 			switch (piece.getPieceColour()) { // absolutely dreadful code
 			case 0: // white pawn
-				if (pieceLookUp(pieceX - 1, pieceY + 1) != null) {
+				if (pieceLookUp(pieceX - 1, pieceY + 1) != null && pieceLookUp(pieceX - 1, pieceY + 1).getPieceColour() != piece.getPieceColour()) {
 					temp = new Square(pieceX - 1, pieceY + 1);
 					moveList.add(temp);
 				}
-				if (pieceLookUp(pieceX + 1, pieceY + 1) != null) {
+				if (pieceLookUp(pieceX + 1, pieceY + 1) != null && pieceLookUp(pieceX + 1, pieceY + 1).getPieceColour() != piece.getPieceColour()) {
 					temp = new Square(pieceX + 1, pieceY + 1);
 					moveList.add(temp);
 				}
@@ -392,11 +402,11 @@ class ChessGame {
 				}
 				break;
 			case 1: // black pawn
-				if (pieceLookUp(pieceX - 1, pieceY - 1) != null) {
+				if (pieceLookUp(pieceX - 1, pieceY - 1) != null && pieceLookUp(pieceX - 1, pieceY - 1).getPieceColour() != piece.getPieceColour()) {
 					temp = new Square(pieceX - 1, pieceY - 1);
 					moveList.add(temp);
 				}
-				if (pieceLookUp(pieceX + 1, pieceY - 1) != null) {
+				if (pieceLookUp(pieceX + 1, pieceY - 1) != null && pieceLookUp(pieceX + 1, pieceY - 1).getPieceColour() != piece.getPieceColour()) {
 					temp = new Square(pieceX + 1, pieceY - 1);
 					moveList.add(temp);
 				}
@@ -407,6 +417,15 @@ class ChessGame {
 				if (pieceY == 6 && pieceLookUp(pieceX, pieceY - 1) == null && pieceLookUp(pieceX, pieceY - 2) == null) {
 					temp = new Square(pieceX, pieceY - 2);
 					moveList.add(temp);
+				}
+				if (!previousPieces.isEmpty() && !previousMoves.isEmpty()) {
+					Piece previousPiece = previousPieces.peek();
+					Square previousMove = previousMoves.peek();
+					if (pieceY == 3 && previousPiece.getPieceType() == 0 && (previousMove.getY() - previousPiece.getPieceY()) == 2 && (previousMove.getX() == (pieceX - 1) || previousMove.getX() == (pieceX + 1))) {
+						temp = new Square(previousMove.getX(), pieceY - 1);
+						temp.setEnPassant();
+						moveList.add(temp);
+					}
 				}
 				break;
 			}
@@ -493,23 +512,23 @@ class ChessGame {
 }
 
 public class Chess extends ApplicationAdapter {
-	private Texture chessboard;
-	private Texture selectedSquareTexture;
+	private Texture chessboard; // holds board image
+	private Texture selectedSquareTexture; // holds selected square image
 	// 0 = pawn, 1 = king, 2 = queen, 3 = knight, 4 = bishop, 5 = rook
-	private Texture whitePieceTextures[] = new Texture[6];
-	private Texture blackPieceTextures[] = new Texture[6];
+	private Texture whitePieceTextures[] = new Texture[6]; // holds white piece textures
+	private Texture blackPieceTextures[] = new Texture[6]; // holds black piece textures
 
-	private ChessGame chessGame = new ChessGame();
+	private ChessGame chessGame = new ChessGame(); // create a new instance of chessgame
 
-	private ArrayList<Piece> whitePieces = new ArrayList<Piece>();
-	private ArrayList<Piece> blackPieces = new ArrayList<Piece>();
-	private Piece selectedPiece;
-	private Piece temporaryPiece;
+	private ArrayList<Piece> whitePieces = new ArrayList<Piece>(); // holds white piece positions
+	private ArrayList<Piece> blackPieces = new ArrayList<Piece>(); // holds black piece positions
+	private Piece selectedPiece; // selected piece in GUI
+	private Piece temporaryPiece; // placeholder piece 
 	
-	private OrthographicCamera camera;
-	private SpriteBatch batch;
+	private OrthographicCamera camera; // camera object
+	private SpriteBatch batch; // spritebatch to draw textures onto the screen
 
-	private Square projectedSquare = new Square(-100, -100);
+	private Square projectedSquare = new Square(-100, -100); // 
 	private Square selectedMove = null;
 	private Square tempSquare;
 
@@ -525,9 +544,9 @@ public class Chess extends ApplicationAdapter {
 			whitePieceTextures[i - 1] = new Texture(Gdx.files.internal("w" + i + ".png"));
 			blackPieceTextures[i - 1] = new Texture(Gdx.files.internal("b" + i + ".png"));
 		}
-		camera = new OrthographicCamera();
-		camera.setToOrtho(false, 480, 480);
-		batch = new SpriteBatch();
+		camera = new OrthographicCamera(); // create camera object
+		camera.setToOrtho(false, 480, 480); // set camera to 2d
+		batch = new SpriteBatch(); // make a new sprite batch
 	}
 
 	@Override
@@ -535,8 +554,8 @@ public class Chess extends ApplicationAdapter {
 		whitePieces = chessGame.getWhitePieces();
 		blackPieces = chessGame.getBlackPieces();
 		ScreenUtils.clear(1, 1, 1, 1);
-		camera.update();
-		batch.setProjectionMatrix(camera.combined);
+		camera.update(); // update camera
+		batch.setProjectionMatrix(camera.combined); // boilerplate code necessary to draw image
 		batch.begin();
 		batch.draw(chessboard, 0, 0);
 		batch.draw(selectedSquareTexture, projectedSquare.getX(), projectedSquare.getY());

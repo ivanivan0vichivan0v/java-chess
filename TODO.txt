@@ -1,7 +1,7 @@
 TODO:
 -Castling
 -Promotion, done
--En passant
+-En passant, done
 -Check/checkmate
 -Menu/UI?
 -AI
