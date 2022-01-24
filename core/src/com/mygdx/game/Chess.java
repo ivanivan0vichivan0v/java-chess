@@ -308,7 +308,7 @@ class ChessGame {
 		previousPieces.push(newPiece);
 		previousMoves.push(move);
 
-		if (move.getKingCastle() || move.getQueenCastle()) {
+		if (move.getKingCastle() || move.getQueenCastle()) { // for castling purposes only
 			switch (piece.getPieceColour()) {
 			case 0:
 				if (move.getKingCastle()) {
@@ -353,8 +353,7 @@ class ChessGame {
 		}
 		
 		modifyPiece(originalPos, move); // move piece to requested position
-		if (piece.getPieceColour() == 0 && piece.getPieceY() == 7
-				|| piece.getPieceColour() == 1 && piece.getPieceY() == 0) { // if white pawn or black pawn on last row,
+		if (move.getPromotion()) { // if white pawn or black pawn on last row,
 																			// promote said pawn
 			promotePiece(move);
 		}
@@ -485,6 +484,7 @@ class ChessGame {
 				}
 				if (pieceLookUp(pieceX, pieceY + 1) == null) {
 					temp = new Square(pieceX, pieceY + 1);
+					if ((pieceY + 1) == 0) temp.setPromotion();
 					moveList.add(temp);
 				}
 				if (pieceY == 1 && pieceLookUp(pieceX, pieceY + 1) == null && pieceLookUp(pieceX, pieceY + 2) == null) {
@@ -498,7 +498,7 @@ class ChessGame {
 							&& (previousPiece.getPieceY() - previousMove.getY()) == 2
 							&& ((previousMove.getX() == (pieceX - 1)) || previousMove.getX() == (pieceX + 1))) {
 						temp = new Square(previousMove.getX(), pieceY + 1);
-						temp.setEnPassant();
+						temp.setEnPassant(); // set the move to enpassant type if conditions for enpassant are met
 						moveList.add(temp);
 					}
 				}
@@ -516,6 +516,7 @@ class ChessGame {
 				}
 				if (pieceLookUp(pieceX, pieceY - 1) == null) {
 					temp = new Square(pieceX, pieceY - 1);
+					if ((pieceY - 1) == 0) temp.setPromotion(); // set the move to promotion type if it's reached the end of the board
 					moveList.add(temp);
 				}
 				if (pieceY == 6 && pieceLookUp(pieceX, pieceY - 1) == null && pieceLookUp(pieceX, pieceY - 2) == null) {
@@ -557,7 +558,7 @@ class ChessGame {
 						if (kingsideRook != null && !kingsideRook.hasPieceMoved()) {
 							for (int i = 0; i < 2; i++) {
 								temp = whiteKingsideSquares[i];
-								System.out.println(castleCheck);
+								System.out.println("castleCheck status: " + castleCheck);
 								Piece squarePiece;
 								squarePiece = pieceLookUp(temp.getX(), temp.getY());
 								if (squarePiece != null) {
@@ -574,6 +575,7 @@ class ChessGame {
 								for (int l = 0; l < totalMoveList.get(k).size(); l++) {
 									temp = totalMoveList.get(k).get(l);
 									if (temp == whiteKingsideSquares[0] || temp == whiteKingsideSquares[1]) {
+										System.out.println("reaches here");
 										break kingsideCastle;
 									}
 								}
