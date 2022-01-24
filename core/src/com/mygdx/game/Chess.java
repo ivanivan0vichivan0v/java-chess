@@ -57,23 +57,39 @@ class Square {
 	public void setY(int y) {
 		this.y = y;
 	}
-	
+
 	public void setEnPassant() {
 		this.enPassant = !this.enPassant;
 	}
-	
+
 	public void setPromotion() {
 		this.promotion = !this.promotion;
 	}
-	
+
+	public void setKingCastle() {
+		this.kingCastle = !this.kingCastle;
+	}
+
+	public void setQueenCastle() {
+		this.queenCastle = !this.queenCastle;
+	}
+
+	public boolean getKingCastle() {
+		return this.kingCastle;
+	}
+
+	public boolean getQueenCastle() {
+		return this.queenCastle;
+	}
+
 	public boolean getEnPassant() {
 		return this.enPassant;
 	}
-	
+
 	public boolean getPromotion() {
 		return this.promotion;
 	}
-	
+
 }
 
 class Piece {
@@ -82,7 +98,7 @@ class Piece {
 	private int type; // 0 = pawn, 1 = king, 2 = queen, 3 = knight, 4 = bishop, 5 = rook
 	private int colour; // 0 = white, 1 = black
 	private boolean hasMoved; // holds whether piece was moved (used to check whether piece can castle or not)
-	
+
 	// creates a new piece
 	public Piece(int x, int y, int type, int colour) {
 		this.x = x;
@@ -127,15 +143,23 @@ class Piece {
 	public void setPieceY(int y) {
 		this.y = y;
 	}
+
+	public void pieceHasMoved() {
+		this.hasMoved = true;
+	}
+
+	public boolean hasPieceMoved() {
+		return this.hasMoved;
+	}
 }
 
 // class which contains game state
 class ChessGame {
 	private int turn; // 0 = white, 1 = black
-	
+
 	Stack<Piece> previousPieces = new Stack<Piece>();
 	Stack<Square> previousMoves = new Stack<Square>();
-	
+
 	private Piece[] whitePieces = new Piece[16];
 	private Piece[] blackPieces = new Piece[16];
 
@@ -204,7 +228,7 @@ class ChessGame {
 		else
 			this.turn = 0;
 	}
-	
+
 	// find the piece at a given location
 	public Piece pieceLookUp(int x, int y) {
 		Piece piece = null; // assume piece is null, have it overwritten if it isn't the case
@@ -242,6 +266,7 @@ class ChessGame {
 					&& this.whitePiecesList.get(i).getPieceY() == originalPos.getY()) {
 				this.whitePiecesList.get(i).setPieceX(newPos.getX());
 				this.whitePiecesList.get(i).setPieceY(newPos.getY());
+				this.whitePiecesList.get(i).pieceHasMoved();
 			}
 		}
 		for (int j = 0; j < blackPiecesList.size(); j++) {
@@ -249,6 +274,7 @@ class ChessGame {
 					&& this.blackPiecesList.get(j).getPieceY() == originalPos.getY()) {
 				this.blackPiecesList.get(j).setPieceX(newPos.getX());
 				this.blackPiecesList.get(j).setPieceY(newPos.getY());
+				this.blackPiecesList.get(j).pieceHasMoved();
 			}
 		}
 	}
@@ -275,19 +301,57 @@ class ChessGame {
 	public void movePiece(Piece piece, Square move) {
 		if (piece == null || move == null) // return if piece or move is null
 			return;
+		Piece attackedPiece = pieceLookUp(move.getX(), move.getY()); // find if there is a piece at the desired move
+		// location
+		Square originalPos = new Square(piece.getPieceX(), piece.getPieceY());
 		Piece newPiece = new Piece(piece.getPieceX(), piece.getPieceY(), piece.getPieceType(), piece.getPieceColour());
 		previousPieces.push(newPiece);
 		previousMoves.push(move);
+
+		if (move.getKingCastle() || move.getQueenCastle()) {
+			switch (piece.getPieceColour()) {
+			case 0:
+				if (move.getKingCastle()) {
+					originalPos = new Square(4,0); // move king (pos should always be same for castling)
+					move = new Square(6, 0);
+					modifyPiece(originalPos, move);
+					originalPos = new Square(7,0); // move rook (pos should always be same for castling)
+					move = new Square(5, 0);
+					modifyPiece(originalPos, move);
+				} else if (move.getQueenCastle()) {
+					originalPos = new Square(4,0); // move king (pos should always be same for castling)
+					move = new Square(2, 0);
+					modifyPiece(originalPos, move);
+					originalPos = new Square(0,0); // move rook (pos should always be same for castling)
+					move = new Square(3, 0);
+				}
+				break;
+			case 1:
+				if (move.getKingCastle()) {
+					originalPos = new Square(4,7); // move king (pos should always be same for castling)
+					move = new Square(6, 7);
+					modifyPiece(originalPos, move);
+					originalPos = new Square(7,7); // move rook (pos should always be same for castling)
+					move = new Square(5, 7);
+					modifyPiece(originalPos, move);
+				} else if (move.getQueenCastle()) {
+					originalPos = new Square(4,7); // move king (pos should always be same for castling)
+					move = new Square(2, 7);
+					modifyPiece(originalPos, move);
+					originalPos = new Square(0,7); // move rook (pos should always be same for castling)
+					move = new Square(3, 7);
+				}
+				break;
+			}
+			return;
+		}
 		
-		
-		Piece attackedPiece = pieceLookUp(move.getX(), move.getY()); // find if there is a piece at the desired move
-																		// location
 		if (attackedPiece != null && attackedPiece.getPieceColour() != piece.getPieceColour()) {
 			removePiece(attackedPiece.getPieceX(), attackedPiece.getPieceY()); // remove piece if there is one at the
 																				// requested position
 			System.out.println("removed piece" + attackedPiece + " with attacking piece " + piece);
 		}
-		Square originalPos = new Square(piece.getPieceX(), piece.getPieceY());
+		
 		modifyPiece(originalPos, move); // move piece to requested position
 		if (piece.getPieceColour() == 0 && piece.getPieceY() == 7
 				|| piece.getPieceColour() == 1 && piece.getPieceY() == 0) { // if white pawn or black pawn on last row,
@@ -308,7 +372,8 @@ class ChessGame {
 
 	public ArrayList<Square> getPieceOffset(Piece piece) {
 		ArrayList<Square> offsetList = new ArrayList<Square>();
-		Square baseOffset[] = new Square[8]; // there is probably a more elegant way to do this but it really shouldn't matter
+		Square baseOffset[] = new Square[8]; // there is probably a more elegant way to do this but it really shouldn't
+												// matter
 		baseOffset[0] = new Square(-1, 1);
 		baseOffset[1] = new Square(1, 1);
 		baseOffset[2] = new Square(-1, -1);
@@ -317,7 +382,8 @@ class ChessGame {
 		baseOffset[5] = new Square(1, 0);
 		baseOffset[6] = new Square(0, -1);
 		baseOffset[7] = new Square(-1, 0); // four adjacent sides
-		Square knightOffset[] = new Square[8];  // there is probably a more elegant way to do this but it really shouldn't matter
+		Square knightOffset[] = new Square[8]; // there is probably a more elegant way to do this but it really
+												// shouldn't matter
 		knightOffset[0] = new Square(-1, 2);
 		knightOffset[1] = new Square(-2, 1);
 		knightOffset[2] = new Square(-2, -1);
@@ -358,28 +424,62 @@ class ChessGame {
 
 	// movePiece()
 	// returns all legal moves for a certain piece
-	public ArrayList<Square> generateMoveList(Piece piece) { // TODO: find a more efficient way of doing this
+	public ArrayList<Square> generateMoveList(Piece piece, boolean castleCheck) { // TODO: find a more efficient way of
+																					// doing this
 		if (piece == null) {
 			return null;
 		}
 		ArrayList<Square> moveList = new ArrayList<Square>(); // arraylist which contains all moves
-		ArrayList<Square> offsetList = new ArrayList<Square>(); // contains offset generated from getPieceOffset function
+		ArrayList<Square> offsetList = new ArrayList<Square>(); // contains offset generated from getPieceOffset
+																// function
+
+		ArrayList<Square> temporaryMoveList = new ArrayList<Square>(); // arraylist which holds a temporary movelist
+		ArrayList<ArrayList<Square>> totalMoveList = new ArrayList<ArrayList<Square>>(); // arraylist of an arraylist of
+																							// squares, which contains
+																							// all moves from all
+																							// opposing pieces, used
+																							// when checking whether
+																							// castling is possible
+
+		Piece kingsideRook;
+		Piece queensideRook;
+		
+		Square[] whiteKingsideSquares = new Square[2]; // white kingside squares to check
+		Square[] whiteQueensideSquares = new Square[3]; // white queenside squares to check
+		Square[] blackKingsideSquares = new Square[2]; // black queenside squares to check
+		Square[] blackQueensideSquares = new Square[3]; // black queenside squares to check
+		
+		whiteKingsideSquares[0] = new Square(5, 0);
+		whiteKingsideSquares[1] = new Square(6, 0);
+		whiteQueensideSquares[0] = new Square(3, 0);
+		whiteQueensideSquares[1] = new Square(2, 0);
+		whiteQueensideSquares[2] = new Square(1, 0);
+		blackKingsideSquares[0] = new Square(5, 7);
+		blackKingsideSquares[1] = new Square(6, 7);
+		blackQueensideSquares[0] = new Square(3, 7);
+		blackQueensideSquares[1] = new Square(2, 7);
+		blackQueensideSquares[2] = new Square(1, 7);
+
 		int pieceX = piece.getPieceX();
 		int pieceY = piece.getPieceY();
+
 		Square temp = null;
+
 		if (!previousPieces.isEmpty()) {
 			System.out.println(previousPieces.peek() + " " + previousMoves.peek());
 		}
-		
+
 		switch (piece.getPieceType()) {
 		case 0: // if piece == pawn
 			switch (piece.getPieceColour()) { // absolutely dreadful code
 			case 0: // white pawn
-				if (pieceLookUp(pieceX - 1, pieceY + 1) != null && pieceLookUp(pieceX - 1, pieceY + 1).getPieceColour() != piece.getPieceColour()) {
+				if (pieceLookUp(pieceX - 1, pieceY + 1) != null
+						&& pieceLookUp(pieceX - 1, pieceY + 1).getPieceColour() != piece.getPieceColour()) {
 					temp = new Square(pieceX - 1, pieceY + 1);
 					moveList.add(temp);
 				}
-				if (pieceLookUp(pieceX + 1, pieceY + 1) != null && pieceLookUp(pieceX + 1, pieceY + 1).getPieceColour() != piece.getPieceColour()) {
+				if (pieceLookUp(pieceX + 1, pieceY + 1) != null
+						&& pieceLookUp(pieceX + 1, pieceY + 1).getPieceColour() != piece.getPieceColour()) {
 					temp = new Square(pieceX + 1, pieceY + 1);
 					moveList.add(temp);
 				}
@@ -394,7 +494,9 @@ class ChessGame {
 				if (!previousPieces.isEmpty() && !previousMoves.isEmpty()) {
 					Piece previousPiece = previousPieces.peek();
 					Square previousMove = previousMoves.peek();
-					if (pieceY == 4 && previousPiece.getPieceType() == 0 && (previousPiece.getPieceY() - previousMove.getY()) == 2 && ((previousMove.getX() == (pieceX - 1)) || previousMove.getX() == (pieceX + 1))) {
+					if (pieceY == 4 && previousPiece.getPieceType() == 0
+							&& (previousPiece.getPieceY() - previousMove.getY()) == 2
+							&& ((previousMove.getX() == (pieceX - 1)) || previousMove.getX() == (pieceX + 1))) {
 						temp = new Square(previousMove.getX(), pieceY + 1);
 						temp.setEnPassant();
 						moveList.add(temp);
@@ -402,11 +504,13 @@ class ChessGame {
 				}
 				break;
 			case 1: // black pawn
-				if (pieceLookUp(pieceX - 1, pieceY - 1) != null && pieceLookUp(pieceX - 1, pieceY - 1).getPieceColour() != piece.getPieceColour()) {
+				if (pieceLookUp(pieceX - 1, pieceY - 1) != null
+						&& pieceLookUp(pieceX - 1, pieceY - 1).getPieceColour() != piece.getPieceColour()) {
 					temp = new Square(pieceX - 1, pieceY - 1);
 					moveList.add(temp);
 				}
-				if (pieceLookUp(pieceX + 1, pieceY - 1) != null && pieceLookUp(pieceX + 1, pieceY - 1).getPieceColour() != piece.getPieceColour()) {
+				if (pieceLookUp(pieceX + 1, pieceY - 1) != null
+						&& pieceLookUp(pieceX + 1, pieceY - 1).getPieceColour() != piece.getPieceColour()) {
 					temp = new Square(pieceX + 1, pieceY - 1);
 					moveList.add(temp);
 				}
@@ -421,7 +525,9 @@ class ChessGame {
 				if (!previousPieces.isEmpty() && !previousMoves.isEmpty()) {
 					Piece previousPiece = previousPieces.peek();
 					Square previousMove = previousMoves.peek();
-					if (pieceY == 3 && previousPiece.getPieceType() == 0 && (previousMove.getY() - previousPiece.getPieceY()) == 2 && (previousMove.getX() == (pieceX - 1) || previousMove.getX() == (pieceX + 1))) {
+					if (pieceY == 3 && previousPiece.getPieceType() == 0
+							&& (previousMove.getY() - previousPiece.getPieceY()) == 2
+							&& (previousMove.getX() == (pieceX - 1) || previousMove.getX() == (pieceX + 1))) {
 						temp = new Square(previousMove.getX(), pieceY - 1);
 						temp.setEnPassant();
 						moveList.add(temp);
@@ -438,6 +544,49 @@ class ChessGame {
 				Piece attackedPiece = pieceLookUp(newMove.getX(), newMove.getY());
 				if (attackedPiece == null || attackedPiece.getPieceColour() != piece.getPieceColour()) {
 					moveList.add(newMove);
+				}
+			}
+			if (!piece.hasPieceMoved() && castleCheck == false) {
+				switch (piece.getPieceColour()) {
+				case 0:
+					kingsideRook = pieceLookUp(7, 0);
+					queensideRook = pieceLookUp(0, 0);
+
+					kingsideCastle: 
+						// label used to break loop to prevent unnecessary processing
+						if (kingsideRook != null && !kingsideRook.hasPieceMoved()) {
+							for (int i = 0; i < 2; i++) {
+								temp = whiteKingsideSquares[i];
+								System.out.println(castleCheck);
+								Piece squarePiece;
+								squarePiece = pieceLookUp(temp.getX(), temp.getY());
+								if (squarePiece != null) {
+									break kingsideCastle;
+								}
+							}
+							for (int j = 0; j < blackPiecesList.size(); j++) {
+								temporaryMoveList = generateMoveList(blackPiecesList.get(j), true);
+								if (temporaryMoveList != null) {
+									totalMoveList.add(temporaryMoveList);
+								}
+							}
+							for (int k = 0; k < blackPiecesList.size(); k++) {
+								for (int l = 0; l < totalMoveList.get(k).size(); l++) {
+									temp = totalMoveList.get(k).get(l);
+									if (temp == whiteKingsideSquares[0] || temp == whiteKingsideSquares[1]) {
+										break kingsideCastle;
+									}
+								}
+							}
+							temp = new Square(6, 0);
+							temp.setKingCastle();
+							moveList.add(temp);
+						}
+					break;
+				case 1:
+					kingsideRook = pieceLookUp(7, 7);
+					queensideRook = pieceLookUp(0, 7);
+					break;
 				}
 			}
 			break;
@@ -523,12 +672,12 @@ public class Chess extends ApplicationAdapter {
 	private ArrayList<Piece> whitePieces = new ArrayList<Piece>(); // holds white piece positions
 	private ArrayList<Piece> blackPieces = new ArrayList<Piece>(); // holds black piece positions
 	private Piece selectedPiece; // selected piece in GUI
-	private Piece temporaryPiece; // placeholder piece 
-	
+	private Piece temporaryPiece; // placeholder piece
+
 	private OrthographicCamera camera; // camera object
 	private SpriteBatch batch; // spritebatch to draw textures onto the screen
 
-	private Square projectedSquare = new Square(-100, -100); // 
+	private Square projectedSquare = new Square(-100, -100); //
 	private Square selectedMove = null;
 	private Square tempSquare;
 
@@ -583,7 +732,7 @@ public class Chess extends ApplicationAdapter {
 			temporaryPiece = chessGame.pieceLookUp(tempSquare.getX(), tempSquare.getY());
 			if (temporaryPiece != null && temporaryPiece.getPieceColour() == chessGame.getCurrentTurn()) {
 				selectedPiece = temporaryPiece;
-				moveList = chessGame.generateMoveList(selectedPiece);
+				moveList = chessGame.generateMoveList(selectedPiece, false);
 				projectedSquare = new Square(a, b);
 				selectedMove = null;
 			} else {
