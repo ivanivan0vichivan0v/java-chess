@@ -34,7 +34,7 @@ class Square {
 	// prints x and y of square
 	public String toString() {
 		String square = "";
-		square = square + " X:" + this.x + " Y:" + this.y;
+		square = square + " X:" + this.x + " Y:" + this.y + " Promotion:" + this.promotion + " En Passant:" + this.enPassant + " kingCastle:" + this.kingCastle + " queenCastle:" + this.queenCastle;
 		return square;
 	}
 
@@ -307,7 +307,7 @@ class ChessGame {
 		Piece newPiece = new Piece(piece.getPieceX(), piece.getPieceY(), piece.getPieceType(), piece.getPieceColour());
 		previousPieces.push(newPiece);
 		previousMoves.push(move);
-
+ 
 		if (move.getKingCastle() || move.getQueenCastle()) { // for castling purposes only
 			switch (piece.getPieceColour()) {
 			case 0:
@@ -475,16 +475,18 @@ class ChessGame {
 				if (pieceLookUp(pieceX - 1, pieceY + 1) != null
 						&& pieceLookUp(pieceX - 1, pieceY + 1).getPieceColour() != piece.getPieceColour()) {
 					temp = new Square(pieceX - 1, pieceY + 1);
+					if ((pieceY + 1) == 7) temp.setPromotion(); // set the move to promotion type if it's reached the end of the board
 					moveList.add(temp);
 				}
 				if (pieceLookUp(pieceX + 1, pieceY + 1) != null
 						&& pieceLookUp(pieceX + 1, pieceY + 1).getPieceColour() != piece.getPieceColour()) {
 					temp = new Square(pieceX + 1, pieceY + 1);
+					if ((pieceY + 1) == 7) temp.setPromotion(); // set the move to promotion type if it's reached the end of the board
 					moveList.add(temp);
 				}
 				if (pieceLookUp(pieceX, pieceY + 1) == null) {
 					temp = new Square(pieceX, pieceY + 1);
-					if ((pieceY + 1) == 0) temp.setPromotion();
+					if ((pieceY + 1) == 7) temp.setPromotion(); // set the move to promotion type if it's reached the end of the board
 					moveList.add(temp);
 				}
 				if (pieceY == 1 && pieceLookUp(pieceX, pieceY + 1) == null && pieceLookUp(pieceX, pieceY + 2) == null) {
@@ -507,11 +509,13 @@ class ChessGame {
 				if (pieceLookUp(pieceX - 1, pieceY - 1) != null
 						&& pieceLookUp(pieceX - 1, pieceY - 1).getPieceColour() != piece.getPieceColour()) {
 					temp = new Square(pieceX - 1, pieceY - 1);
+					if ((pieceY - 1) == 0) temp.setPromotion(); // set the move to promotion type if it's reached the end of the board
 					moveList.add(temp);
 				}
 				if (pieceLookUp(pieceX + 1, pieceY - 1) != null
 						&& pieceLookUp(pieceX + 1, pieceY - 1).getPieceColour() != piece.getPieceColour()) {
 					temp = new Square(pieceX + 1, pieceY - 1);
+					if ((pieceY - 1) == 0) temp.setPromotion(); // set the move to promotion type if it's reached the end of the board
 					moveList.add(temp);
 				}
 				if (pieceLookUp(pieceX, pieceY - 1) == null) {
@@ -746,8 +750,8 @@ public class Chess extends ApplicationAdapter {
 						if (moveList.get(i).getX() == selectedMove.getX()
 								&& moveList.get(i).getY() == selectedMove.getY()) {
 							System.out.println(selectedPiece);
-							System.out.println(selectedMove);
 							selectedMove = moveList.get(i);
+							System.out.println(selectedMove);
 							moveMade = true;
 						}
 					} catch (Exception e) {
