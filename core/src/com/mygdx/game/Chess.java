@@ -324,6 +324,7 @@ class ChessGame {
 					modifyPiece(originalPos, move);
 					originalPos = new Square(0,0); // move rook (pos should always be same for castling)
 					move = new Square(3, 0);
+					modifyPiece(originalPos, move);
 				}
 				break;
 			case 1:
@@ -340,6 +341,7 @@ class ChessGame {
 					modifyPiece(originalPos, move);
 					originalPos = new Square(0,7); // move rook (pos should always be same for castling)
 					move = new Square(3, 7);
+					modifyPiece(originalPos, move);
 				}
 				break;
 			}
@@ -578,7 +580,8 @@ class ChessGame {
 							for (int k = 0; k < blackPiecesList.size(); k++) {
 								for (int l = 0; l < totalMoveList.get(k).size(); l++) {
 									temp = totalMoveList.get(k).get(l);
-									if (temp == whiteKingsideSquares[0] || temp == whiteKingsideSquares[1]) {
+									System.out.println(temp);
+									if ((temp.getX() == whiteKingsideSquares[0].getX() && temp.getY() == whiteKingsideSquares[0].getY()) || (temp.getX() == whiteKingsideSquares[1].getX() && temp.getY() == whiteKingsideSquares[1].getY()) ) {
 										System.out.println("reaches here");
 										break kingsideCastle;
 									}
@@ -588,10 +591,106 @@ class ChessGame {
 							temp.setKingCastle();
 							moveList.add(temp);
 						}
+					queensideCastle:
+						// label used to break loop to prevent unnecessary processing
+						if (queensideRook != null && !queensideRook.hasPieceMoved()) {
+							for (int i = 0; i < 2; i++) {
+								temp = whiteQueensideSquares[i];
+								System.out.println("castleCheck status: " + castleCheck);
+								Piece squarePiece;
+								squarePiece = pieceLookUp(temp.getX(), temp.getY());
+								if (squarePiece != null) {
+									break queensideCastle;
+								}
+							}
+							for (int j = 0; j < blackPiecesList.size(); j++) {
+								temporaryMoveList = generateMoveList(blackPiecesList.get(j), true);
+								if (temporaryMoveList != null) {
+									totalMoveList.add(temporaryMoveList);
+								}
+							}
+							for (int k = 0; k < blackPiecesList.size(); k++) {
+								for (int l = 0; l < totalMoveList.get(k).size(); l++) {
+									temp = totalMoveList.get(k).get(l);
+									System.out.println(temp);
+									if ((temp.getX() == whiteQueensideSquares[0].getX() && temp.getY() == whiteQueensideSquares[0].getY()) || (temp.getX() == whiteQueensideSquares[1].getX() && temp.getY() == whiteQueensideSquares[1].getY()) || (temp.getX() == whiteQueensideSquares[2].getX() && temp.getY() == whiteQueensideSquares[2].getY())) {
+										System.out.println("reaches here");
+										break queensideCastle;
+									}
+								}
+							}
+							temp = new Square(2, 0);
+							temp.setQueenCastle();
+							moveList.add(temp);
+						}
 					break;
 				case 1:
 					kingsideRook = pieceLookUp(7, 7);
 					queensideRook = pieceLookUp(0, 7);
+					kingsideCastle: 
+						// label used to break loop to prevent unnecessary processing
+						if (kingsideRook != null && !kingsideRook.hasPieceMoved()) {
+							for (int i = 0; i < 2; i++) {
+								temp = blackKingsideSquares[i];
+								System.out.println("castleCheck status: " + castleCheck);
+								Piece squarePiece;
+								squarePiece = pieceLookUp(temp.getX(), temp.getY());
+								if (squarePiece != null) {
+									break kingsideCastle;
+								}
+							}
+							for (int j = 0; j < whitePiecesList.size(); j++) {
+								temporaryMoveList = generateMoveList(whitePiecesList.get(j), true);
+								if (temporaryMoveList != null) {
+									totalMoveList.add(temporaryMoveList);
+								}
+							}
+							for (int k = 0; k < whitePiecesList.size(); k++) {
+								for (int l = 0; l < totalMoveList.get(k).size(); l++) {
+									temp = totalMoveList.get(k).get(l);
+									System.out.println(temp);
+									if ((temp.getX() == blackKingsideSquares[0].getX() && temp.getY() == blackKingsideSquares[0].getY()) || (temp.getX() == blackKingsideSquares[1].getX() && temp.getY() == blackKingsideSquares[1].getY()) ) {
+										System.out.println("reaches here");
+										break kingsideCastle;
+									}
+								}
+							}
+							temp = new Square(6, 7);
+							temp.setKingCastle();
+							moveList.add(temp);
+						}
+					queensideCastle:
+						// label used to break loop to prevent unnecessary processing
+						if (queensideRook != null && !queensideRook.hasPieceMoved()) {
+							for (int i = 0; i < 2; i++) {
+								temp = blackQueensideSquares[i];
+								System.out.println("castleCheck status: " + castleCheck);
+								Piece squarePiece;
+								squarePiece = pieceLookUp(temp.getX(), temp.getY());
+								if (squarePiece != null) {
+									break queensideCastle;
+								}
+							}
+							for (int j = 0; j < whitePiecesList.size(); j++) {
+								temporaryMoveList = generateMoveList(whitePiecesList.get(j), true);
+								if (temporaryMoveList != null) {
+									totalMoveList.add(temporaryMoveList);
+								}
+							}
+							for (int k = 0; k < whitePiecesList.size(); k++) {
+								for (int l = 0; l < totalMoveList.get(k).size(); l++) {
+									temp = totalMoveList.get(k).get(l);
+									System.out.println(temp);
+									if ((temp.getX() == blackQueensideSquares[0].getX() && temp.getY() == blackQueensideSquares[0].getY()) || (temp.getX() == blackQueensideSquares[1].getX() && temp.getY() == blackQueensideSquares[1].getY()) || (temp.getX() == blackQueensideSquares[2].getX() && temp.getY() == blackQueensideSquares[2].getY())) {
+										System.out.println("reaches here");
+										break queensideCastle;
+									}
+								}
+							}
+							temp = new Square(2, 7);
+							temp.setQueenCastle();
+							moveList.add(temp);
+						}
 					break;
 				}
 			}
