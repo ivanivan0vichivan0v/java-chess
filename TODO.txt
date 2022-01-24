@@ -1,5 +1,5 @@
 TODO:
--Castling
+-Castling, done
 -Promotion, done
 -En passant, done
 -Check/checkmate
