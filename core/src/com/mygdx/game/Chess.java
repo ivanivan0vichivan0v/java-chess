@@ -369,6 +369,44 @@ class ChessGame {
 				break;
 			}
 		}
+		
+		System.out.println("White king in check:" + isWhiteInCheck());
+	}
+	
+	// obtain whether white king is in check
+	public boolean isWhiteInCheck() {
+		ArrayList<Square> temporaryMoveList = new ArrayList<Square>(); // arraylist which holds a temporary movelist
+		ArrayList<ArrayList<Square>> totalMoveList = new ArrayList<ArrayList<Square>>(); // arraylist of an arraylist of
+																							// squares, which contains
+																							// all moves from all
+																							// opposing pieces, used
+		Piece kingPiece = null;
+		Square temp = null;
+		boolean inCheck = false;
+		
+		for (int i = 0; i < this.whitePiecesList.size(); i++) {
+			if (this.whitePiecesList.get(i).getPieceType() == 1) { // find king in whitePieceList
+				kingPiece = this.whitePiecesList.get(i);
+			}
+		}
+		for (int j = 0; j < blackPiecesList.size(); j++) {
+			temporaryMoveList = generateMoveList(blackPiecesList.get(j), true);
+			if (temporaryMoveList != null) {
+				totalMoveList.add(temporaryMoveList);
+			}
+		}
+		for (int k = 0; k < blackPiecesList.size(); k++) {
+			for (int l = 0; l < totalMoveList.get(k).size(); l++) {
+				temp = totalMoveList.get(k).get(l);
+				System.out.println(temp);
+				if (temp.getX() == kingPiece.getPieceX() && temp.getY() == kingPiece.getPieceY()) {
+					System.out.println("reaches here");
+					inCheck = true;
+					return inCheck;
+				}
+			}
+		}
+		return inCheck;
 	}
 
 	public ArrayList<Square> getPieceOffset(Piece piece) {
