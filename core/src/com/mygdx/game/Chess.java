@@ -369,38 +369,62 @@ class ChessGame {
 				break;
 			}
 		}
-		
-		System.out.println("White king in check:" + isWhiteInCheck());
+	} 
+	
+	public Piece getKing(int colour) {
+		Piece kingPiece = null;
+		switch (colour) {
+		case 0:
+			for (int i = 0; i < this.whitePiecesList.size(); i++) {
+				if (this.whitePiecesList.get(i).getPieceType() == 1) { // find king in whitePieceList
+					kingPiece = this.whitePiecesList.get(i);
+				}
+			}
+			break;
+		case 1:
+			for (int i = 0; i < this.blackPiecesList.size(); i++) {
+				if (this.blackPiecesList.get(i).getPieceType() == 1) { // find king in whitePieceList
+					kingPiece = this.blackPiecesList.get(i);
+				}
+			}
+			break;
+		}
+		return kingPiece;
 	}
 	
 	// obtain whether white king is in check
-	public boolean isWhiteInCheck() {
+	public boolean isKingInCheck(int colour) {
 		ArrayList<Square> temporaryMoveList = new ArrayList<Square>(); // arraylist which holds a temporary movelist
 		ArrayList<ArrayList<Square>> totalMoveList = new ArrayList<ArrayList<Square>>(); // arraylist of an arraylist of
 																							// squares, which contains
 																							// all moves from all
 																							// opposing pieces, used
+		ArrayList<Piece> piecesList = new ArrayList<Piece>();
 		Piece kingPiece = null;
 		Square temp = null;
 		boolean inCheck = false;
+		kingPiece = getKing(colour);
 		
-		for (int i = 0; i < this.whitePiecesList.size(); i++) {
-			if (this.whitePiecesList.get(i).getPieceType() == 1) { // find king in whitePieceList
-				kingPiece = this.whitePiecesList.get(i);
-			}
+		switch (colour) {
+		case 0:
+			piecesList = this.whitePiecesList;
+			break;
+		case 1:
+			piecesList = this.blackPiecesList;
+			break;
 		}
-		for (int j = 0; j < blackPiecesList.size(); j++) {
-			temporaryMoveList = generateMoveList(blackPiecesList.get(j), true);
+		
+		for (int j = 0; j < piecesList.size(); j++) {
+			temporaryMoveList = generateMoveList(piecesList.get(j), true);
 			if (temporaryMoveList != null) {
 				totalMoveList.add(temporaryMoveList);
 			}
 		}
-		for (int k = 0; k < blackPiecesList.size(); k++) {
+		for (int k = 0; k < piecesList.size(); k++) {
 			for (int l = 0; l < totalMoveList.get(k).size(); l++) {
 				temp = totalMoveList.get(k).get(l);
 				System.out.println(temp);
 				if (temp.getX() == kingPiece.getPieceX() && temp.getY() == kingPiece.getPieceY()) {
-					System.out.println("reaches here");
 					inCheck = true;
 					return inCheck;
 				}
@@ -806,6 +830,8 @@ class ChessGame {
 public class Chess extends ApplicationAdapter {
 	private Texture chessboard; // holds board image
 	private Texture selectedSquareTexture; // holds selected square image
+	private Texture checkTexture;
+	private Texture checkmateTexture;
 	// 0 = pawn, 1 = king, 2 = queen, 3 = knight, 4 = bishop, 5 = rook
 	private Texture whitePieceTextures[] = new Texture[6]; // holds white piece textures
 	private Texture blackPieceTextures[] = new Texture[6]; // holds black piece textures
@@ -831,6 +857,8 @@ public class Chess extends ApplicationAdapter {
 	@Override
 	public void create() {
 		chessboard = new Texture(Gdx.files.internal("chessboard4.png"));
+		//checkmateTexture = new Texture(Gdx.files.internal("checkmateSquare.png"));
+		checkTexture = new Texture(Gdx.files.internal("checkSquare.png"));
 		selectedSquareTexture = new Texture(Gdx.files.internal("selectedSquare.png"));
 		for (int i = 1; i <= 6; i++) {
 			whitePieceTextures[i - 1] = new Texture(Gdx.files.internal("w" + i + ".png"));
@@ -843,6 +871,8 @@ public class Chess extends ApplicationAdapter {
 
 	@Override
 	public void render() {
+		int turn = chessGame.getCurrentTurn();
+		Piece kingPiece = chessGame.getKing(turn);
 		whitePieces = chessGame.getWhitePieces();
 		blackPieces = chessGame.getBlackPieces();
 		ScreenUtils.clear(1, 1, 1, 1);
@@ -850,6 +880,9 @@ public class Chess extends ApplicationAdapter {
 		batch.setProjectionMatrix(camera.combined); // boilerplate code necessary to draw image
 		batch.begin();
 		batch.draw(chessboard, 0, 0);
+		if (chessGame.isKingInCheck(turn)) {
+			batch.draw(checkTexture, kingPiece.getPieceX() * 60, kingPiece.getPieceY() * 60);
+		}
 		batch.draw(selectedSquareTexture, projectedSquare.getX(), projectedSquare.getY());
 		if (moveList != null) {
 			for (int i = 0; i < moveList.size(); i++) {
